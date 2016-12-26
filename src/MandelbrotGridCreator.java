@@ -1,28 +1,16 @@
 /**
  * Created by Philip on 12/25/16.
  */
-public class MandelbrotGrid {
-    private double[][] grid;
-    private int width;
-    private int height;
-    private Coord center;
-    private double zoom;
-    private int maxIterations;
+public class MandelbrotGridCreator {
 
-    MandelbrotGrid (int width, int height, double centerX, double centerY, double zoom, int maxIterations) {
-        this.width = width;
-        this.height = height;
-        this.center = new Coord(centerX, centerY);
-        this.zoom = zoom; // number of vertical or horizontal grid points (pixels) that fit into one cartesian unit
-        this.maxIterations = maxIterations;
-        this.grid = generateGrid();
-    }
+    public double[][] createGrid(int width, int height, double centerX, double centerY, double zoom, int maxIterations) {
+        Coord center = new Coord(centerX, centerY);
+        double[][] grid = generateGrid(width, height, center, zoom, maxIterations);
 
-    public double[][] getGrid () {
-        return this.grid;
+        return grid;
     }
     
-    private double[][] generateGrid() {
+    private double[][] generateGrid(int width, int height, Coord center, double zoom, int maxIterations) {
         double[][] grid = new double[height][width];
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
