@@ -16,7 +16,6 @@ public class ApplicationController {
     Coord center = new Coord(0, 0);
     double zoom = 60;
     int maxIterations = 1000;
-    Image mandelbrotImage;
 
     public ApplicationController() {
         new AppViewer();
@@ -57,10 +56,6 @@ public class ApplicationController {
         int srcy1 = 0;
         int srcx2 = 100;
         int srcy2 = 100;
-        double imageZoom = 1;
-        Coord imageCenter;
-        Image mandelbrotImage;
-
 
         public MandelbrotImageDisplay() {
             super();
@@ -71,7 +66,12 @@ public class ApplicationController {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            g.drawImage(mandelbrotImage, dstx1, dsty1, dstx2, dsty2, srcx1, srcy1, srcx2, srcy2, null);
+
+            if(newImageNeeded()) {
+                generateNewImage();
+            }
+
+            g.drawImage(mandelbrotImage.getImage(), dstx1, dsty1, dstx2, dsty2, 0, 0, mandelbrotImage.getWidth(), mandelbrotImage.getHeight(), null);
         }
 
         public void mouseWheelMoved(MouseWheelEvent e) {
@@ -84,10 +84,49 @@ public class ApplicationController {
             repaint();
         }
 
-        private void upadateImage() {
-            mandelbrotImage = mandelbrotImagecreator.createMandelbrotImage(width * 2, height * 2, center, zoom / 2, maxIterations);
-            imageCenter = new Coord(center.x, center.y);
-            imageZoom = 0.5;
+        private boolean newImageNeeded() {
+            int w = width;
+            int h = width;
+            double x = center.x;
+            double y = center.y;
+            double z = zoom;
+            int w0 = mandelbrotImage.getWidth();
+            int h0 = mandelbrotImage.getHeight();
+            double x0 = mandelbrotImage.getCenter().x;
+            double y0 = mandelbrotImage.getCenter().y;
+            double z0 = mandelbrotImage.getZoom();
+
+            // viewport zoom exceeds given image zoom
+            if (z > z0) {
+                return true;
+            }
+
+            // viewport is trying to display outside image bounds
+            if (x - (double)w / (2 * z) < x0 - (double)w0 / (2 * z0)) { // trying to view too far left
+                return true;
+            } else if (x + (double)w / (2 * z) < x0 + (double)w0 / (2 * z0)) { // too far right
+                return true;
+            } else if (y - (double)h / (2 * z) < y0 - (double)h0 / (2 * z0)) { // too far down
+                return true;
+            } else if (y + (double)h / (2 * z) < y0 + (double)h0 / (2 * z0)) { // too far up
+                return true;
+            }
+
+            return false;
+        }
+
+        private void generateNewImage() {
+            double ratio = Math.sqrt(Math.E); // this ratio minimizes calculations amortized over zoom
+            int newWidth = (int) Math.ceil((double)width * ratio * ratio);
+            int newHeight = (int) Math.ceil((double)height * ratio * ratio);
+
+            System.out.printf("Generating new mandelbrot image with parameters: width = %d; height = %d; center = (%f, %f); zoom = %f; maxIterations = %d\n", newWidth, newHeight, center.x, center.y, zoom * ratio, maxIterations);
+            long startTime = System.nanoTime();
+            mandelbrotImage = new MandelbrotImage(newWidth, newHeight, center, zoom * ratio, maxIterations);
+            long endTime = System.nanoTime();
+
+            long duration = (endTime - startTime) / 1000000;  //divide by 1000000 to get milliseconds.
+            System.out.printf("Image generated after %d milliseconds.\n", duration);
         }
     }
 
