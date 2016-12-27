@@ -2,11 +2,9 @@
  * Created by Philip on 12/25/16.
  */
 public class MandelbrotGridCreator {
-
-    public double[][] createGrid(int width, int height, double centerX, double centerY, double zoom, int maxIterations) {
-        Coord center = new Coord(centerX, centerY);
+    // O(width * height * maxIteractions)
+    public double[][] createGrid(int width, int height, Coord center, double zoom, int maxIterations) {
         double[][] grid = generateGrid(width, height, center, zoom, maxIterations);
-
         return grid;
     }
     
@@ -24,7 +22,7 @@ public class MandelbrotGridCreator {
         return grid;
     }
 
-    // Given a point, iterate the mandelbrot function until point has magnitude > 2 or max iterations. If we meet max iterations, assume point will never escape
+    // Given a point, iterate the mandelbrot function until point has magnitude > 2 or max iterations. If we meet max iterations, assume point will never escape. O(maxIterations)
     private double generateMandelbrotValue(Coord point, int maxIterations) {
         double mandelbrotValue;
         double escapeRadius = 2;
@@ -45,19 +43,5 @@ public class MandelbrotGridCreator {
         double newX = prevIterationValue.x * prevIterationValue.x - prevIterationValue.y * prevIterationValue.y + startPoint.x;
         double newY = 2 * prevIterationValue.x * prevIterationValue.y + startPoint.y;
         return new Coord(newX, newY);
-    }
-}
-
-class Coord {
-    double x;
-    double y;
-
-    Coord(double x, double y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    double squareDistance() {
-        return x * x + y * y;
     }
 }
