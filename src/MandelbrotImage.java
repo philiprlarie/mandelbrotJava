@@ -75,7 +75,7 @@ public class MandelbrotImage {
     }
 
     private int getBinaryColorValue(double gridValue) {
-        if (gridValue > 999) {
+        if (gridValue > maxIterations - 1) {
             return 0;
         }
         return (255 << 16) | (255 << 8) | 255;

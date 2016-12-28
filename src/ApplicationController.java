@@ -11,11 +11,11 @@ import java.awt.event.MouseWheelListener;
  * Created by Philip on 12/26/16.
  */
 public class ApplicationController {
-    int width = 200;
-    int height = 200;
+    int width = 100;
+    int height = 100;
     Coord center = new Coord(0, 0);
     double zoom = 60;
-    int maxIterations = 1000;
+    int maxIterations = 100;
 
     public ApplicationController() {
         new AppViewer();
@@ -48,14 +48,7 @@ public class ApplicationController {
 
     class MandelbrotImageDisplay extends JPanel implements MouseWheelListener {
         MandelbrotImage mandelbrotImage = new MandelbrotImage(width, height, center, zoom, maxIterations);
-        final int dstx1 = 0;
-        final int dsty1 = 0;
-        final int dstx2 = width;
-        final int dsty2 = height;
-        int srcx1 = 0;
-        int srcy1 = 0;
-        int srcx2 = 100;
-        int srcy2 = 100;
+
 
         public MandelbrotImageDisplay() {
             super();
@@ -70,17 +63,55 @@ public class ApplicationController {
             if(newImageNeeded()) {
                 generateNewImage();
             }
+            int w = width;
+            int h = width;
+            double x = center.x;
+            double y = center.y;
+            double z = zoom;
+            int w0 = mandelbrotImage.getWidth();
+            int h0 = mandelbrotImage.getHeight();
+            double x0 = mandelbrotImage.getCenter().x;
+            double y0 = mandelbrotImage.getCenter().y;
+            double z0 = mandelbrotImage.getZoom();
 
-            g.drawImage(mandelbrotImage.getImage(), dstx1, dsty1, dstx2, dsty2, 0, 0, mandelbrotImage.getWidth(), mandelbrotImage.getHeight(), null);
+            final int dstx1 = 0;
+            final int dsty1 = 0;
+            final int dstx2 = width;
+            final int dsty2 = height;
+            int srcx1 = (int) Math.ceil((x - x0) * z0 + w0 / 2 - w / 2 * z0 / z);
+            int srcy1 = (int) Math.ceil((y - y0) * z0 + h0 / 2 - h / 2 * z0 / z);
+            int srcx2 = (int) Math.floor((x - x0) * z0 + w0 / 2 + w / 2 * z0 / z);
+            int srcy2 = (int) Math.floor((y - y0) * z0 + h0 / 2 + h / 2 * z0 / z);
+
+            g.drawImage(mandelbrotImage.getImage(), dstx1, dsty1, dstx2, dsty2, srcx1, srcy1, srcx2, srcy2, null);
         }
 
         public void mouseWheelMoved(MouseWheelEvent e) {
             double scrollMovement = e.getPreciseWheelRotation();
+            int scrollPosX = e.getX(); // pixel position of scroll
+            int scrollPosY = e.getY();
+            int w = width;
+            int h = height;
+            // double zoom = zoom;
+            double x0 = center.x;
+            double y0 = center.y;
+            double x = ((double)scrollPosX - (double)w / 2) / zoom + x0; // cartesian position of scroll
+            double y = ((double)scrollPosY - (double)h / 2) / zoom + y0; // cartesian position of scroll
+
+
+            double zoomRatio; // (oldZoom / newZoom)
             if (scrollMovement > 0) {
-                zoom *= 1.01;
+                zoomRatio = 0.99;
+                System.out.println("zooming in");
             } else {
-                zoom *= .99;
+                zoomRatio = 1.01;
+                System.out.println("zooming out");
             }
+            double newCenterX = x0 / zoomRatio + x * (zoomRatio - 1) / zoomRatio;
+            double newCenterY = y0 / zoomRatio + y * (zoomRatio - 1) / zoomRatio;
+
+            center = new Coord(newCenterX, newCenterY);
+            zoom = zoom * zoomRatio;
             repaint();
         }
 
@@ -104,11 +135,11 @@ public class ApplicationController {
             // viewport is trying to display outside image bounds
             if (x - (double)w / (2 * z) < x0 - (double)w0 / (2 * z0)) { // trying to view too far left
                 return true;
-            } else if (x + (double)w / (2 * z) < x0 + (double)w0 / (2 * z0)) { // too far right
+            } else if (x + (double)w / (2 * z) > x0 + (double)w0 / (2 * z0)) { // too far right
                 return true;
             } else if (y - (double)h / (2 * z) < y0 - (double)h0 / (2 * z0)) { // too far down
                 return true;
-            } else if (y + (double)h / (2 * z) < y0 + (double)h0 / (2 * z0)) { // too far up
+            } else if (y + (double)h / (2 * z) > y0 + (double)h0 / (2 * z0)) { // too far up
                 return true;
             }
 
