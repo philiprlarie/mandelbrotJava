@@ -75,9 +75,12 @@ public class MandelbrotImage {
     }
 
     private int getBinaryColorValue(double gridValue) {
-        if (gridValue > maxIterations - 1) {
-            return 0;
-        }
-        return (255 << 16) | (255 << 8) | 255;
+//        if (gridValue > maxIterations - 1) {
+//            return 0;
+//        }
+        byte r = (byte) Math.floor(255 * gridValue / maxIterations);
+        byte g = (byte) Math.floor(150 * gridValue / maxIterations);
+        byte b = (byte) Math.floor(50 * gridValue / maxIterations);
+        return (r << 16) | (g << 8) | b;
     }
 }
