@@ -46,6 +46,7 @@ public class ApplicationController {
 
     class MandelbrotImageDisplay extends JPanel implements MouseWheelListener {
         MandelbrotImage mandelbrotImage = new MandelbrotImage(width, height, center, zoom, maxIterations);
+        boolean currentlyGeneratingImage = false;
 
 
         public MandelbrotImageDisplay() {
@@ -58,7 +59,7 @@ public class ApplicationController {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
 
-            if(newImageNeeded()) {
+            if(newImageNeeded() && !currentlyGeneratingImage) {
 //                generateNewImage();
                 new WorkerImageCreator().execute();
             }
@@ -101,10 +102,10 @@ public class ApplicationController {
             double zoomRatio; // (oldZoom / newZoom)
             if (scrollMovement > 0) {
                 zoomRatio = 0.99;
-                System.out.println("zooming in");
+                System.out.println("zooming out");
             } else {
                 zoomRatio = 1.01;
-                System.out.println("zooming out");
+                System.out.println("zooming in");
             }
             double newCenterX = x0 / zoomRatio + x * (zoomRatio - 1) / zoomRatio;
             double newCenterY = y0 / zoomRatio + y * (zoomRatio - 1) / zoomRatio;
@@ -162,6 +163,7 @@ public class ApplicationController {
         class WorkerImageCreator extends SwingWorker<MandelbrotImage, Void> {
             @Override
             public MandelbrotImage doInBackground() {
+                currentlyGeneratingImage = true;
                 double ratio = Math.sqrt(Math.E); // this ratio minimizes calculations amortized over zoom
                 int newWidth = (int) Math.ceil((double)width * ratio * ratio);
                 int newHeight = (int) Math.ceil((double)height * ratio * ratio);
@@ -178,7 +180,7 @@ public class ApplicationController {
 
             @Override
             public void done() {
-                //Remove the "Loading images" label.
+                currentlyGeneratingImage = false;
                 try {
                     mandelbrotImage = get();
                 } catch (InterruptedException ignore) {}
