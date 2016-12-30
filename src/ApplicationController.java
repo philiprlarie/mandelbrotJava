@@ -1,5 +1,4 @@
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -11,8 +10,8 @@ import java.awt.event.MouseWheelListener;
  * Created by Philip on 12/26/16.
  */
 public class ApplicationController {
-    int width = 100;
-    int height = 100;
+    int width = 200;
+    int height = 200;
     Coord center = new Coord(0, 0);
     double zoom = 60;
     int maxIterations = 100;
@@ -45,7 +44,6 @@ public class ApplicationController {
         }
     }
 
-
     class MandelbrotImageDisplay extends JPanel implements MouseWheelListener {
         MandelbrotImage mandelbrotImage = new MandelbrotImage(width, height, center, zoom, maxIterations);
 
@@ -61,7 +59,8 @@ public class ApplicationController {
             super.paintComponent(g);
 
             if(newImageNeeded()) {
-                generateNewImage();
+//                generateNewImage();
+                new WorkerImageCreator().execute();
             }
             int w = width;
             int h = width;
@@ -146,19 +145,55 @@ public class ApplicationController {
             return false;
         }
 
-        private void generateNewImage() {
-            double ratio = Math.sqrt(Math.E); // this ratio minimizes calculations amortized over zoom
-            int newWidth = (int) Math.ceil((double)width * ratio * ratio);
-            int newHeight = (int) Math.ceil((double)height * ratio * ratio);
+//        private void generateNewImage() {
+//            double ratio = Math.sqrt(Math.E); // this ratio minimizes calculations amortized over zoom
+//            int newWidth = (int) Math.ceil((double)width * ratio * ratio);
+//            int newHeight = (int) Math.ceil((double)height * ratio * ratio);
+//
+//            System.out.printf("Generating new mandelbrot image with parameters: width = %d; height = %d; center = (%f, %f); zoom = %f; maxIterations = %d\n", newWidth, newHeight, center.x, center.y, zoom * ratio, maxIterations);
+//            long startTime = System.nanoTime();
+//            mandelbrotImage = new MandelbrotImage(newWidth, newHeight, center, zoom * ratio, maxIterations);
+//            long endTime = System.nanoTime();
+//
+//            long duration = (endTime - startTime) / 1000000;  //divide by 1000000 to get milliseconds.
+//            System.out.printf("Image generated after %d milliseconds.\n", duration);
+//        }
 
-            System.out.printf("Generating new mandelbrot image with parameters: width = %d; height = %d; center = (%f, %f); zoom = %f; maxIterations = %d\n", newWidth, newHeight, center.x, center.y, zoom * ratio, maxIterations);
-            long startTime = System.nanoTime();
-            mandelbrotImage = new MandelbrotImage(newWidth, newHeight, center, zoom * ratio, maxIterations);
-            long endTime = System.nanoTime();
+        class WorkerImageCreator extends SwingWorker<MandelbrotImage, Void> {
+            @Override
+            public MandelbrotImage doInBackground() {
+                double ratio = Math.sqrt(Math.E); // this ratio minimizes calculations amortized over zoom
+                int newWidth = (int) Math.ceil((double)width * ratio * ratio);
+                int newHeight = (int) Math.ceil((double)height * ratio * ratio);
 
-            long duration = (endTime - startTime) / 1000000;  //divide by 1000000 to get milliseconds.
-            System.out.printf("Image generated after %d milliseconds.\n", duration);
-        }
+                System.out.printf("Generating new mandelbrot image with parameters: width = %d; height = %d; center = (%f, %f); zoom = %f; maxIterations = %d\n", newWidth, newHeight, center.x, center.y, zoom * ratio, maxIterations);
+                long startTime = System.nanoTime();
+                MandelbrotImage mandelbrotImage = new MandelbrotImage(newWidth, newHeight, center, zoom * ratio, maxIterations);
+                long endTime = System.nanoTime();
+                long duration = (endTime - startTime) / 1000000;  //divide by 1000000 to get milliseconds.
+                System.out.printf("Image generated after %d milliseconds.\n", duration);
+
+                return mandelbrotImage;
+            }
+
+            @Override
+            public void done() {
+                //Remove the "Loading images" label.
+                try {
+                    mandelbrotImage = get();
+                } catch (InterruptedException ignore) {}
+                catch (java.util.concurrent.ExecutionException e) {
+                    String why = null;
+                    Throwable cause = e.getCause();
+                    if (cause != null) {
+                        why = cause.getMessage();
+                    } else {
+                        why = e.getMessage();
+                    }
+                    System.err.println("Error retrieving file: " + why);
+                }
+            }
+        };
     }
 
 //    class GuiControlsRight extends JPanel {
