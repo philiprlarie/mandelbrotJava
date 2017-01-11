@@ -1,8 +1,12 @@
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
@@ -15,6 +19,7 @@ public class ApplicationController {
     Coord center = new Coord(0, 0);
     double zoom = 60;
     int maxIterations = 100;
+    MandelbrotImageFilter mandelbrotImageFilter = MandelbrotImageFilter.BLACK_WHITE;
 
     public ApplicationController() {
         new AppViewer();
@@ -27,18 +32,14 @@ public class ApplicationController {
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             setSize(800, 500);
             setResizable(true);
-
             panel.setBackground(Color.blue);
             BorderLayout layout = new BorderLayout();
             layout.setHgap(10);
             layout.setVgap(10);
             panel.setLayout(layout);
-
             MandelbrotImageDisplay mandelbrotImageDisplay = new MandelbrotImageDisplay();
             panel.add(mandelbrotImageDisplay, BorderLayout.CENTER);
-
-//            panel.add(new GuiControlsRight(), BorderLayout.EAST);
-
+            panel.add(new GuiControlsRight(), BorderLayout.EAST);
             add(panel);
             setVisible(true);
         }
@@ -47,7 +48,6 @@ public class ApplicationController {
     class MandelbrotImageDisplay extends JPanel implements MouseWheelListener {
         MandelbrotImage mandelbrotImage = new MandelbrotImage(width, height, center, zoom, maxIterations);
         boolean currentlyGeneratingImage = false;
-
 
         public MandelbrotImageDisplay() {
             super();
@@ -58,9 +58,7 @@ public class ApplicationController {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-
-            if(newImageNeeded() && !currentlyGeneratingImage) {
-//                generateNewImage();
+            if (newImageNeeded() && !currentlyGeneratingImage) {
                 new WorkerImageCreator().execute();
             }
             int w = width;
@@ -95,9 +93,8 @@ public class ApplicationController {
             // double zoom = zoom;
             double x0 = center.x;
             double y0 = center.y;
-            double x = ((double)scrollPosX - (double)w / 2) / zoom + x0; // cartesian position of scroll
-            double y = ((double)scrollPosY - (double)h / 2) / zoom + y0; // cartesian position of scroll
-
+            double x = ((double) scrollPosX - (double) w / 2) / zoom + x0; // cartesian position of scroll
+            double y = ((double) scrollPosY - (double) h / 2) / zoom + y0; // cartesian position of scroll
 
             double zoomRatio; // (oldZoom / newZoom)
             if (scrollMovement > 0) {
@@ -131,46 +128,36 @@ public class ApplicationController {
             if (z > z0) {
                 return true;
             }
-
             // viewport is trying to display outside image bounds
-            if (x - (double)w / (2 * z) < x0 - (double)w0 / (2 * z0)) { // trying to view too far left
+            if (x - (double) w / (2 * z) < x0 - (double) w0 / (2 * z0)) { // trying to view too far left
                 return true;
-            } else if (x + (double)w / (2 * z) > x0 + (double)w0 / (2 * z0)) { // too far right
+            } else if (x + (double) w / (2 * z) > x0 + (double) w0 / (2 * z0)) { // too far right
                 return true;
-            } else if (y - (double)h / (2 * z) < y0 - (double)h0 / (2 * z0)) { // too far down
+            } else if (y - (double) h / (2 * z) < y0 - (double) h0 / (2 * z0)) { // too far down
                 return true;
-            } else if (y + (double)h / (2 * z) > y0 + (double)h0 / (2 * z0)) { // too far up
+            } else if (y + (double) h / (2 * z) > y0 + (double) h0 / (2 * z0)) { // too far up
                 return true;
             }
-
             return false;
         }
-
-//        private void generateNewImage() {
-//            double ratio = Math.sqrt(Math.E); // this ratio minimizes calculations amortized over zoom
-//            int newWidth = (int) Math.ceil((double)width * ratio * ratio);
-//            int newHeight = (int) Math.ceil((double)height * ratio * ratio);
-//
-//            System.out.printf("Generating new mandelbrot image with parameters: width = %d; height = %d; center = (%f, %f); zoom = %f; maxIterations = %d\n", newWidth, newHeight, center.x, center.y, zoom * ratio, maxIterations);
-//            long startTime = System.nanoTime();
-//            mandelbrotImage = new MandelbrotImage(newWidth, newHeight, center, zoom * ratio, maxIterations);
-//            long endTime = System.nanoTime();
-//
-//            long duration = (endTime - startTime) / 1000000;  //divide by 1000000 to get milliseconds.
-//            System.out.printf("Image generated after %d milliseconds.\n", duration);
-//        }
 
         class WorkerImageCreator extends SwingWorker<MandelbrotImage, Void> {
             @Override
             public MandelbrotImage doInBackground() {
                 currentlyGeneratingImage = true;
                 double ratio = Math.sqrt(Math.E); // this ratio minimizes calculations amortized over zoom
-                int newWidth = (int) Math.ceil((double)width * ratio * ratio);
-                int newHeight = (int) Math.ceil((double)height * ratio * ratio);
+                int newWidth = (int) Math.ceil((double) width * ratio * ratio);
+                int newHeight = (int) Math.ceil((double) height * ratio * ratio);
 
                 System.out.printf("Generating new mandelbrot image with parameters: width = %d; height = %d; center = (%f, %f); zoom = %f; maxIterations = %d\n", newWidth, newHeight, center.x, center.y, zoom * ratio, maxIterations);
                 long startTime = System.nanoTime();
-                MandelbrotImage mandelbrotImage = new MandelbrotImage(newWidth, newHeight, center, zoom * ratio, maxIterations);
+                MandelbrotImage mandelbrotImage;
+                if (mandelbrotImageFilter == MandelbrotImageFilter.ORANGE_BLACK) {
+                    mandelbrotImage = new MandelbrotImageOrangeBlack(newWidth, newHeight, center, zoom * ratio, maxIterations);
+                } else {
+                    mandelbrotImage = new MandelbrotImage(newWidth, newHeight, center, zoom * ratio, maxIterations);
+                }
+
                 long endTime = System.nanoTime();
                 long duration = (endTime - startTime) / 1000000;  //divide by 1000000 to get milliseconds.
                 System.out.printf("Image generated after %d milliseconds.\n", duration);
@@ -183,8 +170,8 @@ public class ApplicationController {
                 currentlyGeneratingImage = false;
                 try {
                     mandelbrotImage = get();
-                } catch (InterruptedException ignore) {}
-                catch (java.util.concurrent.ExecutionException e) {
+                } catch (InterruptedException ignore) {
+                } catch (java.util.concurrent.ExecutionException e) {
                     String why = null;
                     Throwable cause = e.getCause();
                     if (cause != null) {
@@ -195,34 +182,46 @@ public class ApplicationController {
                     System.err.println("Error retrieving file: " + why);
                 }
             }
-        };
+        }
     }
 
-//    class GuiControlsRight extends JPanel {
-//        public GuiControlsRight() {
-//            JTextField maxIterations = new JTextField("1010");
-//            maxIterations.getDocument().addDocumentListener(new DocumentListener() {
-//                @Override
-//                public void insertUpdate(DocumentEvent e) {
-//                    System.out.println("ho insert");
-//                }
-//
-//                @Override
-//                public void removeUpdate(DocumentEvent e) {
-//                    System.out.println("ho remove");
-//
-//                }
-//
-//                @Override
-//                public void changedUpdate(DocumentEvent e) {
-//                    System.out.println("ho change");
-//
-//                }
-//            });
-//
-//            add(maxIterations);
-//            add(new JButton("hohoho"));
-//            add(new JButton("hahaha"));
-//        }
-//    }
+    class GuiControlsRight extends JPanel {
+        public GuiControlsRight() {
+            JTextField maxIterationsTextBox = new JTextField("1010");
+            maxIterationsTextBox.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
+                }
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
+                }
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
+                }
+            });
+            JButton blackAndWhiteBtn = new JButton("Black and White");
+            blackAndWhiteBtn.addActionListener(new ActionListener () {
+                public void actionPerformed(ActionEvent e) {
+                    mandelbrotImageFilter = MandelbrotImageFilter.BLACK_WHITE;
+                }
+            });
+            JButton orangeAndBlackBtn = new JButton("Black and White");
+            orangeAndBlackBtn.addActionListener(new ActionListener () {
+                public void actionPerformed(ActionEvent e) {
+                    mandelbrotImageFilter = MandelbrotImageFilter.ORANGE_BLACK;
+                }
+            });
+
+            add(maxIterationsTextBox);
+            add(blackAndWhiteBtn);
+            add(orangeAndBlackBtn);
+        }
+    }
+}
+
+enum MandelbrotImageFilter {
+    BLACK_WHITE, ORANGE_BLACK
 }
