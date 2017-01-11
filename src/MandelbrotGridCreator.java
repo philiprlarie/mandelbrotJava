@@ -1,3 +1,6 @@
+import static com.sun.tools.doclint.Entity.mu;
+import static com.sun.tools.doclint.Entity.real;
+
 /**
  * Created by Philip on 12/25/16.
  */
@@ -22,10 +25,10 @@ public class MandelbrotGridCreator {
         return grid;
     }
 
-    // Given a point, iterate the mandelbrot function until point has magnitude > 2 or max iterations. If we meet max iterations, assume point will never escape. O(maxIterations)
+    // Given a point, iterate the mandelbrot function until orbit has magnitude > escapeRadius or we have performed a set max number of iterations. If we meet max iterations, assume point will never escape. O(maxIterations)
     private double generateMandelbrotValue(Coord point, int maxIterations) {
         double mandelbrotValue;
-        double escapeRadius = 2;
+        double escapeRadius = 2000;
         Coord curIterationValue = new Coord(0, 0);
         int i = 1;
         while (i < maxIterations) {
@@ -35,9 +38,24 @@ public class MandelbrotGridCreator {
             }
             i++;
         }
-        mandelbrotValue = i;
+
+//        // this way returns simple integer escape values.
+//        mandelbrotValue = i;
+//        return mandelbrotValue;
+
+        // Smooth Escape Iteration Counts. see http://linas.org/art-gallery/escape/escape.html
+        if (curIterationValue.squareDistance() < 2 * 2 * 2 * 2) {
+            // current iteration value is too small, point didn't escape
+            mandelbrotValue = maxIterations;
+        } else {
+            double mu = i + 1 - Math.log(Math.log(curIterationValue.squareDistance()) / 2) / Math.log(2);
+            mandelbrotValue = mu > maxIterations ? maxIterations : mu; // set the max escape value at maxIterations
+        }
+
         return mandelbrotValue;
     }
+
+
 
     private Coord singleMandelbrotIteration(Coord startPoint, Coord prevIterationValue) {
         double newX = prevIterationValue.x * prevIterationValue.x - prevIterationValue.y * prevIterationValue.y + startPoint.x;

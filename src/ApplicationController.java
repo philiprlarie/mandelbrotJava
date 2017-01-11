@@ -10,8 +10,8 @@ import java.awt.event.MouseWheelListener;
  * Created by Philip on 12/26/16.
  */
 public class ApplicationController {
-    int width = 200;
-    int height = 200;
+    int width = 400;
+    int height = 400;
     Coord center = new Coord(0, 0);
     double zoom = 60;
     int maxIterations = 100;
