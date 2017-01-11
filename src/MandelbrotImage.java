@@ -7,14 +7,14 @@ import java.io.IOException;
  * Created by Philip on 12/25/16.
  */
 public class MandelbrotImage {
-    private static MandelbrotGridCreator mandelbrotGridCreator = new MandelbrotGridCreator();
-    private int width;
-    private int height;
-    private Coord center;
-    private double zoom;
-    private int maxIterations;
-    private double[][] mandelbrotGrid;
-    private BufferedImage image;
+    protected static MandelbrotGridCreator mandelbrotGridCreator = new MandelbrotGridCreator();
+    protected int width;
+    protected int height;
+    protected Coord center;
+    protected double zoom;
+    protected int maxIterations;
+    protected double[][] mandelbrotGrid;
+    protected BufferedImage image;
 
     public MandelbrotImage(int width, int height, Coord center, double zoom, int maxIterations) {
         this.width = width;
@@ -61,7 +61,7 @@ public class MandelbrotImage {
         }
     }
 
-    private BufferedImage createImage(double[][] mandelbrotGrid) {
+    protected BufferedImage createImage(double[][] mandelbrotGrid) {
         int height = mandelbrotGrid.length;
         int width = mandelbrotGrid[0].length;
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -75,12 +75,9 @@ public class MandelbrotImage {
     }
 
     private int getBinaryColorValue(double gridValue) {
-//        if (gridValue > maxIterations - 1) {
-//            return 0;
-//        }
-        byte r = (byte) Math.floor(255 * gridValue / maxIterations);
-        byte g = (byte) Math.floor(150 * gridValue / maxIterations);
-        byte b = (byte) Math.floor(50 * gridValue / maxIterations);
-        return (r << 16) | (g << 8) | b;
+        if (gridValue > maxIterations - 1) {
+            return 0;
+        }
+        return Integer.MAX_VALUE;
     }
 }
