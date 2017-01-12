@@ -10,12 +10,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
+import static com.sun.corba.se.impl.util.Utility.printStackTrace;
+
 /**
  * Created by Philip on 12/26/16.
  */
 public class ApplicationController {
-    int width = 400;
-    int height = 400;
+    int width = 200;
+    int height = 200;
     Coord center = new Coord(0, 0);
     double zoom = 60;
     int maxIterations = 100;
@@ -154,6 +156,8 @@ public class ApplicationController {
                 MandelbrotImage mandelbrotImage;
                 if (mandelbrotImageFilter == MandelbrotImageFilter.ORANGE_BLACK) {
                     mandelbrotImage = new MandelbrotImageOrangeBlack(newWidth, newHeight, center, zoom * ratio, maxIterations);
+                } else if (mandelbrotImageFilter == MandelbrotImageFilter.COLOR_BANDS) {
+                    mandelbrotImage = new MandelbrotImageColorBands(newWidth, newHeight, center, zoom * ratio, maxIterations);
                 } else {
                     mandelbrotImage = new MandelbrotImage(newWidth, newHeight, center, zoom * ratio, maxIterations);
                 }
@@ -172,14 +176,15 @@ public class ApplicationController {
                     mandelbrotImage = get();
                 } catch (InterruptedException ignore) {
                 } catch (java.util.concurrent.ExecutionException e) {
-                    String why = null;
-                    Throwable cause = e.getCause();
-                    if (cause != null) {
-                        why = cause.getMessage();
-                    } else {
-                        why = e.getMessage();
-                    }
-                    System.err.println("Error retrieving file: " + why);
+                    e.printStackTrace();
+//                    String why = null;
+//                    Throwable cause = e.getCause();
+//                    if (cause != null) {
+//                        why = cause.getMessage();
+//                    } else {
+//                        why = e.getMessage();
+//                    }
+//                    System.err.println("Error retrieving file: " + why);
                 }
             }
         }
@@ -187,7 +192,7 @@ public class ApplicationController {
 
     class GuiControlsRight extends JPanel {
         public GuiControlsRight() {
-            JTextField maxIterationsTextBox = new JTextField("1010");
+            JTextField maxIterationsTextBox = new JTextField("" + maxIterations);
             maxIterationsTextBox.getDocument().addDocumentListener(new DocumentListener() {
                 @Override
                 public void insertUpdate(DocumentEvent e) {
@@ -208,20 +213,27 @@ public class ApplicationController {
                     mandelbrotImageFilter = MandelbrotImageFilter.BLACK_WHITE;
                 }
             });
-            JButton orangeAndBlackBtn = new JButton("Black and White");
+            JButton orangeAndBlackBtn = new JButton("Orange and Black");
             orangeAndBlackBtn.addActionListener(new ActionListener () {
                 public void actionPerformed(ActionEvent e) {
                     mandelbrotImageFilter = MandelbrotImageFilter.ORANGE_BLACK;
+                }
+            });
+            JButton colorBandBtn = new JButton("Color Bands");
+            colorBandBtn.addActionListener(new ActionListener () {
+                public void actionPerformed(ActionEvent e) {
+                    mandelbrotImageFilter = MandelbrotImageFilter.COLOR_BANDS;
                 }
             });
 
             add(maxIterationsTextBox);
             add(blackAndWhiteBtn);
             add(orangeAndBlackBtn);
+            add(colorBandBtn);
         }
     }
 }
 
 enum MandelbrotImageFilter {
-    BLACK_WHITE, ORANGE_BLACK
+    BLACK_WHITE, ORANGE_BLACK, COLOR_BANDS
 }

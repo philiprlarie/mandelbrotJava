@@ -26,6 +26,7 @@ public class MandelbrotGridCreator {
     }
 
     // Given a point, iterate the mandelbrot function until orbit has magnitude > escapeRadius or we have performed a set max number of iterations. If we meet max iterations, assume point will never escape. O(maxIterations)
+    // escape value should have min >= 0 and max <= numIterations
     private double generateMandelbrotValue(Coord point, int maxIterations) {
         double mandelbrotValue;
         double escapeRadius = 2000;
@@ -50,6 +51,7 @@ public class MandelbrotGridCreator {
         } else {
             double mu = i + 1 - Math.log(Math.log(curIterationValue.squareDistance()) / 2) / Math.log(2);
             mandelbrotValue = mu > maxIterations ? maxIterations : mu; // set the max escape value at maxIterations
+            mandelbrotValue = mandelbrotValue < 0 ? 0 : mandelbrotValue; // set the min escape value at 0
         }
 
         return mandelbrotValue;

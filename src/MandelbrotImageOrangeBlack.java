@@ -27,6 +27,4 @@ public class MandelbrotImageOrangeBlack extends MandelbrotImage {
         byte b = (byte) Math.floor(50 * gridValue / maxIterations);
         return (r << 16) | (g << 8) | b;
     }
-
-
 }
