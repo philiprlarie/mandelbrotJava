@@ -22,9 +22,9 @@ public class MandelbrotImageOrangeBlack extends MandelbrotImage {
     }
 
     private int getBinaryColorValue(double gridValue) {
-        byte r = (byte) Math.floor(255 * gridValue / maxIterations);
-        byte g = (byte) Math.floor(150 * gridValue / maxIterations);
-        byte b = (byte) Math.floor(50 * gridValue / maxIterations);
+        int r = (int)Math.floor(255 * gridValue / maxIterations);
+        int g = (int)Math.floor(150 * gridValue / maxIterations);
+        int b = (int)Math.floor(50 * gridValue / maxIterations);
         return (r << 16) | (g << 8) | b;
     }
 }

@@ -57,11 +57,11 @@ public class MandelbrotImageColorBands extends MandelbrotImage {
 
         double[] bandWidths = { 0, .2, .4, .8, 1 };
         int[][] bandColors = {
-                { 255, 255, 255 },
-                { 255, 255, 255 },
-                {   0,   0,   0 },
-                { 255, 255, 255 },
-                { 255, 255, 255 }
+                { 66, 134, 244 },
+                { 35, 119, 26 },
+                { 119, 11, 112 },
+                { 119, 11, 26 },
+                { 51, 6, 12 }
         };
 
         // escape val is in final column of histogram. they all get the same band color
@@ -98,10 +98,9 @@ public class MandelbrotImageColorBands extends MandelbrotImage {
     }
 
     private int rgbArrayToBinaryColorValue(int[] rgbArray) {
-        byte r = (byte) rgbArray[0];
-        byte g = (byte) rgbArray[1];
-        byte b = (byte) rgbArray[2];
-        System.out.println(Integer.toHexString((r << 16) | (g << 8) | b));
+        int r = rgbArray[0];
+        int g = rgbArray[1];
+        int b = rgbArray[2];
         return (r << 16) | (g << 8) | b;
     }
 }
