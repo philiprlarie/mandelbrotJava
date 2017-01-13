@@ -1,4 +1,5 @@
 import javax.imageio.ImageIO;
+import java.awt.Desktop;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -50,12 +51,21 @@ public class MandelbrotImage {
         return image;
     }
 
-    public void saveImage(int width, int height, Coord center, double zoom, int maxIterations) {
+    public void saveImage() {
+        int width = 2000;
+        int height = 1500;
+
         double[][] mandelbrotGrid = mandelbrotGridCreator.createGrid(width, height, center, zoom, maxIterations);
         BufferedImage img = createImage(mandelbrotGrid);
         File f = new File("MyFile.png");
         try {
             ImageIO.write(img, "PNG", f);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Desktop dt = Desktop.getDesktop();
+        try {
+            dt.open(f);
         } catch (IOException e) {
             e.printStackTrace();
         }

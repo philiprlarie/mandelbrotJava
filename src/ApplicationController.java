@@ -177,14 +177,6 @@ public class ApplicationController {
                 } catch (InterruptedException ignore) {
                 } catch (java.util.concurrent.ExecutionException e) {
                     e.printStackTrace();
-//                    String why = null;
-//                    Throwable cause = e.getCause();
-//                    if (cause != null) {
-//                        why = cause.getMessage();
-//                    } else {
-//                        why = e.getMessage();
-//                    }
-//                    System.err.println("Error retrieving file: " + why);
                 }
             }
         }
@@ -226,10 +218,32 @@ public class ApplicationController {
                 }
             });
 
+            JButton generateImgBtn = new JButton("Generate Image");
+            generateImgBtn.addActionListener(new ActionListener () {
+                public void actionPerformed(ActionEvent e) {
+                    System.out.printf("Saving mandelbrot image with parameters: center = (%f, %f); zoom = %f; maxIterations = %d\n", center.x, center.y, zoom, maxIterations);
+                    long startTime = System.nanoTime();
+                    MandelbrotImage mandelbrotImage;
+                    if (mandelbrotImageFilter == MandelbrotImageFilter.ORANGE_BLACK) {
+                        mandelbrotImage = new MandelbrotImageOrangeBlack(width, height, center, zoom, maxIterations);
+                    } else if (mandelbrotImageFilter == MandelbrotImageFilter.COLOR_BANDS) {
+                        mandelbrotImage = new MandelbrotImageColorBands(width, height, center, zoom, maxIterations);
+                    } else {
+                        mandelbrotImage = new MandelbrotImage(width, height, center, zoom, maxIterations);
+                    }
+                    mandelbrotImage.saveImage();
+                    long endTime = System.nanoTime();
+                    long duration = (endTime - startTime) / 1000000;  //divide by 1000000 to get milliseconds.
+                    System.out.printf("Image generated after %d milliseconds.\n", duration);
+
+                }
+            });
+
             add(maxIterationsTextBox);
             add(blackAndWhiteBtn);
             add(orangeAndBlackBtn);
             add(colorBandBtn);
+            add(generateImgBtn);
         }
     }
 }

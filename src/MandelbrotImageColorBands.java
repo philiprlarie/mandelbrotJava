@@ -82,7 +82,7 @@ public class MandelbrotImageColorBands extends MandelbrotImage {
         // get the rgb values for the given percentIgnoreMaxVals
         int[] rgb = { 0, 0, 0};
         for (int i = 0; i < bandColors.length; i++) {
-            if (percentIgnoreMaxVals > bandWidths[i] && percentIgnoreMaxVals <= bandWidths[i + 1]) {
+            if (percentIgnoreMaxVals >= bandWidths[i] && percentIgnoreMaxVals <= bandWidths[i + 1]) {
                 double r = bandColors[i][0] * (bandWidths[i + 1] - percentIgnoreMaxVals) / (bandWidths[i + 1] - bandWidths[i]) + bandColors[i + 1][0] * (percentIgnoreMaxVals - bandWidths[i]) / (bandWidths[i + 1] - bandWidths[i]);
                 double g = bandColors[i][1] * (bandWidths[i + 1] - percentIgnoreMaxVals) / (bandWidths[i + 1] - bandWidths[i]) + bandColors[i + 1][1] * (percentIgnoreMaxVals - bandWidths[i]) / (bandWidths[i + 1] - bandWidths[i]);
                 double b = bandColors[i][2] * (bandWidths[i + 1] - percentIgnoreMaxVals) / (bandWidths[i + 1] - bandWidths[i]) + bandColors[i + 1][2] * (percentIgnoreMaxVals - bandWidths[i]) / (bandWidths[i + 1] - bandWidths[i]);
