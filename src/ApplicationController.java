@@ -1,10 +1,8 @@
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
@@ -32,17 +30,34 @@ public class ApplicationController {
         public AppViewer() {
             super("Madelbrot Viewer");
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            setSize(800, 500);
             setResizable(true);
+            setSize(400, 500);
+
             panel.setBackground(Color.blue);
-            BorderLayout layout = new BorderLayout();
-            layout.setHgap(10);
-            layout.setVgap(10);
+            BoxLayout layout = new BoxLayout(panel, BoxLayout.PAGE_AXIS);
             panel.setLayout(layout);
+
+            JTextArea textArea = new JTextArea("Scroll over image to zoom in and out. For more or less granularity, enter an int in \"Max Iterations\" (note, increasing max iterations will increase computational complexity and may cause noticeable performance delays). Try different filters. Generate a PNG image file by clicking \"Generate Image\".");
+            textArea.setEditable(false);
+            textArea.setLineWrap(true);
+            textArea.setWrapStyleWord(true);
+
+            JPanel imageHolder = new JPanel();
+            imageHolder.setLayout(new BoxLayout(imageHolder, BoxLayout.PAGE_AXIS));
             MandelbrotImageDisplay mandelbrotImageDisplay = new MandelbrotImageDisplay();
-            panel.add(mandelbrotImageDisplay, BorderLayout.CENTER);
-            panel.add(new GuiControlsRight(), BorderLayout.EAST);
+            imageHolder.add(mandelbrotImageDisplay);
+            imageHolder.setMaximumSize(new Dimension(width, height));
+            imageHolder.setPreferredSize(new Dimension(width, height));
+
+
+            JPanel guiControlsRight = new GuiControlsRight(mandelbrotImageDisplay);
+            guiControlsRight.setLayout(new BoxLayout(guiControlsRight, BoxLayout.PAGE_AXIS));
+
+            panel.add(textArea);
+            panel.add(imageHolder, BorderLayout.CENTER);
+            panel.add(guiControlsRight, BorderLayout.SOUTH);
             add(panel);
+
             setVisible(true);
         }
     }
@@ -115,6 +130,19 @@ public class ApplicationController {
         }
 
         private boolean newImageNeeded() {
+            // user changes some parameters
+            if (mandelbrotImage.getMaxIterations() != maxIterations) {
+                return true;
+            }
+            String filterName = mandelbrotImage.getClass().getSimpleName();
+            if (filterName.equals("MandelbrotImage") && mandelbrotImageFilter != MandelbrotImageFilter.BLACK_WHITE) {
+                return true;
+            } else if (filterName.equals("MandelbrotImageOrangeBlack") && mandelbrotImageFilter != MandelbrotImageFilter.ORANGE_BLACK) {
+                return true;
+            } else if (filterName.equals("MandelbrotImageColorBands") && mandelbrotImageFilter != MandelbrotImageFilter.COLOR_BANDS) {
+                return true;
+            }
+
             int w = width;
             int h = width;
             double x = center.x;
@@ -174,6 +202,7 @@ public class ApplicationController {
                 currentlyGeneratingImage = false;
                 try {
                     mandelbrotImage = get();
+                    MandelbrotImageDisplay.this.repaint();
                 } catch (InterruptedException ignore) {
                 } catch (java.util.concurrent.ExecutionException e) {
                     e.printStackTrace();
@@ -183,38 +212,53 @@ public class ApplicationController {
     }
 
     class GuiControlsRight extends JPanel {
-        public GuiControlsRight() {
-            JTextField maxIterationsTextBox = new JTextField("" + maxIterations);
+        MandelbrotImageDisplay mandelbrotImageDisplay;
+        public GuiControlsRight(MandelbrotImageDisplay mandelbrotImageDisplay) {
+            this.mandelbrotImageDisplay = mandelbrotImageDisplay;
+
+            JLabel myLabel = new JLabel("Max Iterations:");
+            JTextField maxIterationsTextBox = new JTextField(8);
+            maxIterationsTextBox.setText("" + maxIterations);
+            JPanel maxIterationsTextBoxHolder = new JPanel();
+            maxIterationsTextBoxHolder.add(myLabel);
+            maxIterationsTextBoxHolder.add(maxIterationsTextBox);
             maxIterationsTextBox.getDocument().addDocumentListener(new DocumentListener() {
                 @Override
                 public void insertUpdate(DocumentEvent e) {
                     maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
+                    mandelbrotImageDisplay.repaint();
                 }
                 @Override
                 public void removeUpdate(DocumentEvent e) {
                     maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
+                    mandelbrotImageDisplay.repaint();
                 }
                 @Override
                 public void changedUpdate(DocumentEvent e) {
                     maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
+                    mandelbrotImageDisplay.repaint();
                 }
             });
+
             JButton blackAndWhiteBtn = new JButton("Black and White");
             blackAndWhiteBtn.addActionListener(new ActionListener () {
                 public void actionPerformed(ActionEvent e) {
                     mandelbrotImageFilter = MandelbrotImageFilter.BLACK_WHITE;
+                    mandelbrotImageDisplay.repaint();
                 }
             });
             JButton orangeAndBlackBtn = new JButton("Orange and Black");
             orangeAndBlackBtn.addActionListener(new ActionListener () {
                 public void actionPerformed(ActionEvent e) {
                     mandelbrotImageFilter = MandelbrotImageFilter.ORANGE_BLACK;
+                    mandelbrotImageDisplay.repaint();
                 }
             });
             JButton colorBandBtn = new JButton("Color Bands");
             colorBandBtn.addActionListener(new ActionListener () {
                 public void actionPerformed(ActionEvent e) {
                     mandelbrotImageFilter = MandelbrotImageFilter.COLOR_BANDS;
+                    mandelbrotImageDisplay.repaint();
                 }
             });
 
@@ -235,11 +279,10 @@ public class ApplicationController {
                     long endTime = System.nanoTime();
                     long duration = (endTime - startTime) / 1000000;  //divide by 1000000 to get milliseconds.
                     System.out.printf("Image generated after %d milliseconds.\n", duration);
-
                 }
             });
 
-            add(maxIterationsTextBox);
+            add(maxIterationsTextBoxHolder);
             add(blackAndWhiteBtn);
             add(orangeAndBlackBtn);
             add(colorBandBtn);

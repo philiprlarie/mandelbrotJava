@@ -52,12 +52,13 @@ public class MandelbrotImage {
     }
 
     public void saveImage() {
-        int width = 2000;
-        int height = 1500;
+        int newWidth = 4000;
+        int newHeight = (int)Math.ceil((double)newWidth / width * height);
+        double newZoom = (double)newWidth / width * zoom;
 
-        double[][] mandelbrotGrid = mandelbrotGridCreator.createGrid(width, height, center, zoom, maxIterations);
+        double[][] mandelbrotGrid = mandelbrotGridCreator.createGrid(newWidth, newHeight, center, newZoom, maxIterations);
         BufferedImage img = createImage(mandelbrotGrid);
-        File f = new File("MyFile.png");
+        File f = new File("mandelbrot_" + center.x + "_" + center.y + "_" + newZoom + ".png");
         try {
             ImageIO.write(img, "PNG", f);
         } catch (IOException e) {
