@@ -7,11 +7,11 @@ import static com.sun.tools.doclint.Entity.real;
 public class MandelbrotGridCreator {
     // O(width * height * maxIteractions)
     public double[][] createGrid(int width, int height, Coord center, double zoom, int maxIterations) {
-        double[][] grid = generateGrid(width, height, center, zoom, maxIterations);
-        return grid;
+        return createGrid(width, height, center, zoom, maxIterations, false);
     }
-    
-    private double[][] generateGrid(int width, int height, Coord center, double zoom, int maxIterations) {
+    // verbose
+    public double[][] createGrid(int width, int height, Coord center, double zoom, int maxIterations, boolean verbose) {
+        int percentCompletion = Integer.MIN_VALUE;
         double[][] grid = new double[height][width];
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
@@ -21,9 +21,15 @@ public class MandelbrotGridCreator {
                 double mandelbrotValue = generateMandelbrotValue(curPoint, maxIterations);
                 grid[i][j] = mandelbrotValue;
             }
+            int progress = (int) (100 * (double) i / height);
+            if (verbose && progress != percentCompletion) { // print progress in one percent increments
+                percentCompletion = progress;
+                System.out.println(progress + "%");
+            }
         }
         return grid;
     }
+
 
     // Given a point, iterate the mandelbrot function until orbit has magnitude > escapeRadius or we have performed a set max number of iterations. If we meet max iterations, assume point will never escape. O(maxIterations)
     // escape value should have min >= 0 and max <= numIterations
