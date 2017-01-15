@@ -1,4 +1,5 @@
 import javax.imageio.ImageIO;
+import javax.swing.JProgressBar;
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -51,12 +52,12 @@ public class MandelbrotImage {
         return image;
     }
 
-    public void saveImage() {
+    public void saveImage(JProgressBar progressBar) {
         int newWidth = 4000;
         int newHeight = (int)Math.ceil((double)newWidth / width * height);
         double newZoom = (double)newWidth / width * zoom;
 
-        double[][] mandelbrotGrid = mandelbrotGridCreator.createGrid(newWidth, newHeight, center, newZoom, maxIterations, true);
+        double[][] mandelbrotGrid = mandelbrotGridCreator.createGrid(newWidth, newHeight, center, newZoom, maxIterations, progressBar);
         BufferedImage img = createImage(mandelbrotGrid);
         File f = new File("mandelbrot_" + center.x + "_" + center.y + "_" + newZoom + ".png");
         try {

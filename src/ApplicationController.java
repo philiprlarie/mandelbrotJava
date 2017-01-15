@@ -54,8 +54,8 @@ public class ApplicationController {
             guiControlsRight.setLayout(new BoxLayout(guiControlsRight, BoxLayout.PAGE_AXIS));
 
             panel.add(textArea);
-            panel.add(imageHolder, BorderLayout.CENTER);
-            panel.add(guiControlsRight, BorderLayout.SOUTH);
+            panel.add(imageHolder);
+            panel.add(guiControlsRight);
             add(panel);
 
             setVisible(true);
@@ -264,10 +264,13 @@ public class ApplicationController {
                 }
             });
 
+            JProgressBar progressBar = new JProgressBar(0, 100);
+            progressBar.setValue(0);
             JButton generateImgBtn = new JButton("Generate Image");
             generateImgBtn.addActionListener(new ActionListener () {
                 public void actionPerformed(ActionEvent e) {
-                    new WorkerImageSaver().execute();
+                    generateImgBtn.setEnabled(false);
+                    new WorkerImageSaver(progressBar, generateImgBtn).execute();
                 }
             });
 
@@ -276,9 +279,18 @@ public class ApplicationController {
             add(orangeAndBlackBtn);
             add(colorBandBtn);
             add(generateImgBtn);
+            add(progressBar);
         }
 
         class WorkerImageSaver extends SwingWorker<MandelbrotImage, Void> {
+            JProgressBar progressBar;
+            JButton generateImgBtn;
+            public WorkerImageSaver (JProgressBar progressBar, JButton generateImgBtn) {
+                super();
+                this.progressBar = progressBar;
+                this.generateImgBtn = generateImgBtn;
+            }
+
             @Override
             public MandelbrotImage doInBackground() {
                 System.out.printf("Saving mandelbrot image with parameters: center = (%f, %f); zoom = %f; maxIterations = %d\n", center.x, center.y, zoom, maxIterations);
@@ -291,7 +303,7 @@ public class ApplicationController {
                 } else {
                     mandelbrotImage = new MandelbrotImage(width, height, center, zoom, maxIterations);
                 }
-                mandelbrotImage.saveImage();
+                mandelbrotImage.saveImage(progressBar);
                 long endTime = System.nanoTime();
                 long duration = (endTime - startTime) / 1000000;  //divide by 1000000 to get milliseconds.
                 System.out.printf("Image generated after %d milliseconds.\n", duration);
@@ -302,6 +314,8 @@ public class ApplicationController {
             @Override
             public void done() {
                 try {
+                    this.progressBar.setValue(0);
+                    this.generateImgBtn.setEnabled(true);
                     MandelbrotImage mandelbrotImage = get();
                 } catch (InterruptedException ignore) {
                 } catch (java.util.concurrent.ExecutionException e) {

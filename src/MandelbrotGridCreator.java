@@ -1,3 +1,5 @@
+import javax.swing.JProgressBar;
+
 import static com.sun.tools.doclint.Entity.mu;
 import static com.sun.tools.doclint.Entity.real;
 
@@ -7,10 +9,10 @@ import static com.sun.tools.doclint.Entity.real;
 public class MandelbrotGridCreator {
     // O(width * height * maxIteractions)
     public double[][] createGrid(int width, int height, Coord center, double zoom, int maxIterations) {
-        return createGrid(width, height, center, zoom, maxIterations, false);
+        return createGrid(width, height, center, zoom, maxIterations, null);
     }
     // verbose
-    public double[][] createGrid(int width, int height, Coord center, double zoom, int maxIterations, boolean verbose) {
+    public double[][] createGrid(int width, int height, Coord center, double zoom, int maxIterations, JProgressBar progressBar) {
         int percentCompletion = Integer.MIN_VALUE;
         double[][] grid = new double[height][width];
         for (int i = 0; i < height; i++) {
@@ -22,8 +24,9 @@ public class MandelbrotGridCreator {
                 grid[i][j] = mandelbrotValue;
             }
             int progress = (int) (100 * (double) i / height);
-            if (verbose && progress != percentCompletion) { // print progress in one percent increments
+            if (progressBar != null && progress != percentCompletion) { // print progress in one percent increments
                 percentCompletion = progress;
+                progressBar.setValue(progress);
                 System.out.println(progress + "%");
             }
         }
