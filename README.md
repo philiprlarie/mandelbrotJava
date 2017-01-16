@@ -1,4 +1,4 @@
-# Mandelbrot Viewer
+tom # Mandelbrot Viewer
 
 This is a Java Swing application for exploring the Mandelbrot set and printing images.
 
@@ -21,6 +21,7 @@ You may need to adjust max iterations as you zoom in and out of the fractal to a
 ## Filters
 
 ![Orange Filter On ](./exampleImages/orangeBlackFilter.png)
+
 You can choose from one of three filters: simple black and white, smooth orange and black, and smooth transitioning multicolor.
 
 # Saving Image Files
