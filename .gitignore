@@ -2,4 +2,4 @@
 /out
 /mandelbrotJava.iml
 *.log
-*.png
+mandelbrot_*.png

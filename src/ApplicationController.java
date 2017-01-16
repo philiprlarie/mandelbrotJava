@@ -1,5 +1,4 @@
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
@@ -7,8 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-
-import static com.sun.corba.se.impl.util.Utility.printStackTrace;
 
 /**
  * Created by Philip on 12/26/16.
@@ -28,7 +25,7 @@ public class ApplicationController {
     class AppViewer extends JFrame {
         JPanel panel = new JPanel();
         public AppViewer() {
-            super("Madelbrot Viewer");
+            super("Mandelbrot Viewer");
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             setResizable(true);
             setSize(400, 500);
@@ -37,7 +34,7 @@ public class ApplicationController {
             BoxLayout layout = new BoxLayout(panel, BoxLayout.PAGE_AXIS);
             panel.setLayout(layout);
 
-            JTextArea textArea = new JTextArea("Scroll over image to zoom in and out. For more or less granularity, enter an int in \"Max Iterations\" (note, increasing max iterations will increase computational complexity and may cause noticeable performance delays). Try different filters. Generate a PNG image file by clicking \"Generate Image\".");
+            JTextArea textArea = new JTextArea("Place your cursor over an area you’d like to explore and scroll up to zoom in, or down to zoom out. Increase or decrease the \"Max Iterations\" for finer or coarser granularity, respectively (note: max iterations must be a positive integer, max 3000. Increasing max iterations will increase computational time). Test out different color filters, and save your fractal as a PNG.");
             textArea.setEditable(false);
             textArea.setLineWrap(true);
             textArea.setWrapStyleWord(true);
@@ -209,8 +206,6 @@ public class ApplicationController {
                 }
             }
         }
-
-
     }
 
     class GuiControlsRight extends JPanel {
@@ -227,18 +222,24 @@ public class ApplicationController {
             maxIterationsTextBox.getDocument().addDocumentListener(new DocumentListener() {
                 @Override
                 public void insertUpdate(DocumentEvent e) {
-                    maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
-                    mandelbrotImageDisplay.repaint();
+                    if (validateMaxIterationsInput(maxIterationsTextBox)) {
+                        maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
+                        mandelbrotImageDisplay.repaint();
+                    }
                 }
                 @Override
                 public void removeUpdate(DocumentEvent e) {
-                    maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
-                    mandelbrotImageDisplay.repaint();
+                    if (validateMaxIterationsInput(maxIterationsTextBox)) {
+                        maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
+                        mandelbrotImageDisplay.repaint();
+                    }
                 }
                 @Override
                 public void changedUpdate(DocumentEvent e) {
-                    maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
-                    mandelbrotImageDisplay.repaint();
+                    if (validateMaxIterationsInput(maxIterationsTextBox)) {
+                        maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
+                        mandelbrotImageDisplay.repaint();
+                    }
                 }
             });
 
@@ -280,6 +281,24 @@ public class ApplicationController {
             add(colorBandBtn);
             add(generateImgBtn);
             add(progressBar);
+        }
+
+        private boolean validateMaxIterationsInput (JTextField maxIterationsTextBox) {
+            String text = maxIterationsTextBox.getText();
+            int value;
+            try {
+                value = Integer.parseInt(text);
+            } catch (NumberFormatException e) {
+                maxIterationsTextBox.setBackground(Color.PINK);
+                return false;
+            }
+            if (value > 0 && value <= 3000) {
+                maxIterationsTextBox.setBackground(Color.WHITE);
+                return true;
+            } else {
+                maxIterationsTextBox.setBackground(Color.PINK);
+                return false;
+            }
         }
 
         class WorkerImageSaver extends SwingWorker<MandelbrotImage, Void> {
