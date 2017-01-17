@@ -1,4 +1,4 @@
-tom # Mandelbrot Viewer
+# Mandelbrot Viewer
 
 This is a Java Swing application for exploring the Mandelbrot set and printing images.
 
