@@ -11,6 +11,7 @@ import java.awt.event.MouseWheelListener;
  * Created by Philip on 12/26/16.
  */
 public class ApplicationController {
+    // create a model class and puth these fields in there
     int width = 200;
     int height = 200;
     Coord center = new Coord(0, 0);
@@ -22,6 +23,7 @@ public class ApplicationController {
         new AppViewer();
     }
 
+    // this should be application view class
     class AppViewer extends JFrame {
         JPanel panel = new JPanel();
         public AppViewer() {
@@ -59,8 +61,11 @@ public class ApplicationController {
         }
     }
 
+    // much of this should be mandelbrot image display view class. other parts should be in the controller
     class MandelbrotImageDisplay extends JPanel implements MouseWheelListener {
+        // this should live in the model
         MandelbrotImage mandelbrotImage = new MandelbrotImage(width, height, center, zoom, maxIterations);
+        // this should live in the controller
         boolean currentlyGeneratingImage = false;
 
         public MandelbrotImageDisplay() {
@@ -71,6 +76,8 @@ public class ApplicationController {
 
         @Override
         protected void paintComponent(Graphics g) {
+            // the logic for generating the parameters of painting the image should go in the controller
+            // maybe all of this logic should live in the controller
             super.paintComponent(g);
             if (newImageNeeded() && !currentlyGeneratingImage) {
                 new WorkerImageCreator().execute();
@@ -98,6 +105,7 @@ public class ApplicationController {
             g.drawImage(mandelbrotImage.getImage(), dstx1, dsty1, dstx2, dsty2, srcx1, srcy1, srcx2, srcy2, null);
         }
 
+        // pass this event to the controller
         public void mouseWheelMoved(MouseWheelEvent e) {
             double scrollMovement = e.getPreciseWheelRotation();
             int scrollPosX = e.getX(); // pixel position of scroll
@@ -126,6 +134,7 @@ public class ApplicationController {
             repaint();
         }
 
+        // this logic should live in the controller
         private boolean newImageNeeded() {
             // user changes some parameters
             if (mandelbrotImage.getMaxIterations() != maxIterations) {
@@ -141,7 +150,7 @@ public class ApplicationController {
             }
 
             int w = width;
-            int h = width;
+            int h = height;
             double x = center.x;
             double y = center.y;
             double z = zoom;
@@ -168,12 +177,13 @@ public class ApplicationController {
             return false;
         }
 
+        // this logic should live in the controller
         class WorkerImageCreator extends SwingWorker<MandelbrotImage, Void> {
             @Override
             public MandelbrotImage doInBackground() {
                 currentlyGeneratingImage = true;
-                double ratio = Math.sqrt(Math.E); // this ratio minimizes calculations amortized over zoom
-                int newWidth = (int) Math.ceil((double) width * ratio * ratio);
+                double ratio = Math.sqrt(Math.sqrt(Math.E)); // this ratio minimizes calculations amortized over zoom
+                int newWidth = (int) Math.ceil((double) width * ratio * ratio); // pixels are ratio times more dense so we can zoom in. image is ratio times more wide so we can zoom out.
                 int newHeight = (int) Math.ceil((double) height * ratio * ratio);
 
                 System.out.printf("Generating new mandelbrot image with parameters: width = %d; height = %d; center = (%f, %f); zoom = %f; maxIterations = %d\n", newWidth, newHeight, center.x, center.y, zoom * ratio, maxIterations);
@@ -211,7 +221,7 @@ public class ApplicationController {
     class GuiControlsRight extends JPanel {
         MandelbrotImageDisplay mandelbrotImageDisplay;
         public GuiControlsRight(MandelbrotImageDisplay mandelbrotImageDisplay) {
-            this.mandelbrotImageDisplay = mandelbrotImageDisplay;
+            this.mandelbrotImageDisplay = mandelbrotImageDisplay; // we shouldn't need this reference. that should live in the controller
 
             JLabel myLabel = new JLabel("Max Iterations:");
             JTextField maxIterationsTextBox = new JTextField(8);
@@ -222,6 +232,7 @@ public class ApplicationController {
             maxIterationsTextBox.getDocument().addDocumentListener(new DocumentListener() {
                 @Override
                 public void insertUpdate(DocumentEvent e) {
+                    // this event handling should be in GUI section controller
                     if (validateMaxIterationsInput(maxIterationsTextBox)) {
                         maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
                         mandelbrotImageDisplay.repaint();
@@ -229,6 +240,7 @@ public class ApplicationController {
                 }
                 @Override
                 public void removeUpdate(DocumentEvent e) {
+                    // this event handling should be in GUI section controller
                     if (validateMaxIterationsInput(maxIterationsTextBox)) {
                         maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
                         mandelbrotImageDisplay.repaint();
@@ -236,6 +248,7 @@ public class ApplicationController {
                 }
                 @Override
                 public void changedUpdate(DocumentEvent e) {
+                    // this event handling should be in GUI section controller
                     if (validateMaxIterationsInput(maxIterationsTextBox)) {
                         maxIterations = Integer.parseInt(maxIterationsTextBox.getText());
                         mandelbrotImageDisplay.repaint();
@@ -246,6 +259,7 @@ public class ApplicationController {
             JButton blackAndWhiteBtn = new JButton("Black and White");
             blackAndWhiteBtn.addActionListener(new ActionListener () {
                 public void actionPerformed(ActionEvent e) {
+                    // this event handling should be in GUI section controller
                     mandelbrotImageFilter = MandelbrotImageFilter.BLACK_WHITE;
                     mandelbrotImageDisplay.repaint();
                 }
@@ -253,6 +267,7 @@ public class ApplicationController {
             JButton orangeAndBlackBtn = new JButton("Orange and Black");
             orangeAndBlackBtn.addActionListener(new ActionListener () {
                 public void actionPerformed(ActionEvent e) {
+                    // this event handling should be in GUI section controller
                     mandelbrotImageFilter = MandelbrotImageFilter.ORANGE_BLACK;
                     mandelbrotImageDisplay.repaint();
                 }
@@ -260,6 +275,7 @@ public class ApplicationController {
             JButton colorBandBtn = new JButton("Color Bands");
             colorBandBtn.addActionListener(new ActionListener () {
                 public void actionPerformed(ActionEvent e) {
+                    // this event handling should be in GUI section controller
                     mandelbrotImageFilter = MandelbrotImageFilter.COLOR_BANDS;
                     mandelbrotImageDisplay.repaint();
                 }
@@ -270,6 +286,7 @@ public class ApplicationController {
             JButton generateImgBtn = new JButton("Generate Image");
             generateImgBtn.addActionListener(new ActionListener () {
                 public void actionPerformed(ActionEvent e) {
+                    // this event handling should be in GUI section controller. pass progress bar to controller
                     generateImgBtn.setEnabled(false);
                     new WorkerImageSaver(progressBar, generateImgBtn).execute();
                 }
@@ -283,6 +300,7 @@ public class ApplicationController {
             add(progressBar);
         }
 
+        // put this in a GUI section controller
         private boolean validateMaxIterationsInput (JTextField maxIterationsTextBox) {
             String text = maxIterationsTextBox.getText();
             int value;
@@ -301,6 +319,7 @@ public class ApplicationController {
             }
         }
 
+        // put this in a GUI section controller
         class WorkerImageSaver extends SwingWorker<MandelbrotImage, Void> {
             JProgressBar progressBar;
             JButton generateImgBtn;
